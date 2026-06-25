@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>班級聯絡簿</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#566850">
+    <meta name="theme-color" content="#45543f">
     <meta name="apple-mobile-web-app-title" content="班級聯絡簿">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,11 +16,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Iansui&display=swap" rel="stylesheet">
     <style>
         :root {
-            --board: #566850;
-            --board-2: #607359;
+            --board: #45543f;
+            --board-2: #4f5f48;
             --chalk: #f2efe5;
             --chalk-dim: #c3cbb6;
-            --circle: #41503b;
+            --circle: #3a4732;
             --wood: #a3854f;
             --wood-dark: #7c6238;
             --p-year: #b15a43;
@@ -32,7 +32,7 @@
         html, body { margin: 0; padding: 0; }
         body {
             font-family: 'Iansui', sans-serif;
-            background: #3a4634;
+            background: #b6c0ab;
             color: var(--chalk);
             -webkit-font-smoothing: antialiased;
             min-height: 100vh;
@@ -70,7 +70,7 @@
         .pill.y { background: var(--p-year); }
         .pill.m { background: var(--p-month); }
         .pill.d { background: var(--p-day); }
-        .pill.w { background: var(--p-day); padding: 3px 14px; margin-left: 4px; }
+        .wd { color: var(--chalk); margin-left: 6px; }
         .date-stamp { margin-left: auto; color: var(--chalk-dim); font-size: 16px; }
 
         /* 聯絡事項 */
@@ -180,7 +180,6 @@
         .cast-mode .date-row { padding: 36px 2px 30px; gap: 14px; }
         .cast-mode .date-row .num { font-size: 54px; }
         .cast-mode .pill { font-size: 30px; padding: 5px 16px; border-radius: 9px; }
-        .cast-mode .pill.w { padding: 5px 20px; }
         .cast-mode .date-stamp { font-size: 22px; }
         .cast-mode .items { padding-top: 14px; }
         .cast-mode .items li { padding: 22px 2px; gap: 30px; }
@@ -320,7 +319,7 @@
             $('dateRow').innerHTML = `<span class="num">${dp.y}</span><span class="pill y">年</span>`
                 + `<span class="num">${dp.m}</span><span class="pill m">月</span>`
                 + `<span class="num">${dp.d}</span><span class="pill d">日</span>`
-                + `<span class="pill w">星期${dp.w}</span>`
+                + `<span class="num wd">星期${dp.w}</span>`
                 + ((pub && pub.label) ? `<span class="date-stamp">更新於 ${esc(pub.label)}</span>` : '');
 
             const items = (pub && pub.items) ? pub.items : [];
