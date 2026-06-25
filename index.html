@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>班級聯絡簿</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#45543f">
+    <meta name="theme-color" content="#3f545b">
     <meta name="apple-mobile-web-app-title" content="班級聯絡簿">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,23 +16,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Iansui&display=swap" rel="stylesheet">
     <style>
         :root {
-            --board: #45543f;
-            --board-2: #4f5f48;
+            --board: #3f545b;
+            --board-2: #485f67;
             --chalk: #f2efe5;
-            --chalk-dim: #c3cbb6;
-            --circle: #3a4732;
+            --chalk-dim: #b9c2c6;
+            --circle: #4f5a4a;
             --wood: #a3854f;
             --wood-dark: #7c6238;
-            --p-year: #b15a43;
-            --p-month: #c2904a;
-            --p-day: #4e7d54;
+            --p-year: #c3452d;
+            --p-month: #c87646;
+            --p-day: #00798e;
             --del-color: #c4674f;
         }
         * { box-sizing: border-box; }
         html, body { margin: 0; padding: 0; }
         body {
             font-family: 'Iansui', sans-serif;
-            background: #b6c0ab;
+            background: #e7e1d2;
             color: var(--chalk);
             -webkit-font-smoothing: antialiased;
             min-height: 100vh;
@@ -64,13 +64,14 @@
         .logout-btn:hover { background: var(--del-color); color: #fff; }
 
         /* 日期列 */
-        .date-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 22px 2px 18px; }
-        .date-row .num { font-size: 32px; color: var(--chalk); }
-        .pill { color: #fff; font-size: 19px; padding: 3px 11px; border-radius: 7px; }
-        .pill.y { background: var(--p-year); }
-        .pill.m { background: var(--p-month); }
-        .pill.d { background: var(--p-day); }
-        .wd { color: var(--chalk); margin-left: 6px; }
+        .date-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 22px 2px 18px; font-size: 32px; }
+        .date-row .num { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.28); }
+        .tag { font-size: 0.7em; line-height: 1.2; background: #fdf1df; border: 2px solid; border-radius: 9px; padding: 0.06em 0.42em; }
+        .tag.y { color: #c3452d; border-color: #c3452d; }
+        .tag.m { color: #c87646; border-color: #c87646; }
+        .tag.d { color: #00798e; border-color: #00798e; }
+        .tag.wk { color: #027990; border-color: #027990; padding: 0.06em 0.55em; margin-left: 4px; }
+        .wd-circle { display: inline-flex; align-items: center; justify-content: center; width: 1.45em; height: 1.45em; font-size: 0.66em; border-radius: 50%; border: 2px solid #fdf1df; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.28); margin-left: 2px; }
         .date-stamp { margin-left: auto; color: var(--chalk-dim); font-size: 16px; }
 
         /* 聯絡事項 */
@@ -78,9 +79,9 @@
         .items li { display: flex; align-items: flex-start; gap: 18px; padding: 14px 2px; }
         .items .circle {
             flex: none; width: 40px; height: 40px; border-radius: 50%;
-            background: var(--circle); color: var(--chalk);
+            background: var(--circle); color: #fff;
             display: flex; align-items: center; justify-content: center; font-size: 20px;
-            box-shadow: inset 0 0 0 1px rgba(244,241,232,0.2);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
         }
         .items .txt { padding-top: 5px; color: var(--chalk); font-size: 26px; line-height: 1.4; letter-spacing: 0.5px; }
         .empty-note { color: var(--chalk-dim); font-size: 22px; padding: 40px 2px; text-align: center; }
@@ -156,8 +157,7 @@
         @media (min-width: 641px) and (max-width: 1024px) {
             .frame { max-width: 840px; padding: 28px 30px 0; }
             .header h1 { font-size: 34px; }
-            .date-row .num { font-size: 30px; }
-            .pill { font-size: 18px; }
+            .date-row { font-size: 30px; }
             .items li { gap: 20px; padding: 16px 2px; }
             .items .circle { width: 46px; height: 46px; font-size: 22px; }
             .items .txt { font-size: 30px; }
@@ -166,8 +166,7 @@
         /* ===== RWD:大尺寸電腦/螢幕(≥1280) ===== */
         @media (min-width: 1280px) {
             .header h1 { font-size: 42px; }
-            .date-row .num { font-size: 36px; }
-            .pill { font-size: 21px; }
+            .date-row { font-size: 36px; }
             .items .circle { width: 44px; height: 44px; font-size: 22px; }
             .items .txt { font-size: 30px; }
         }
@@ -177,9 +176,7 @@
         .cast-mode .admin, .cast-mode .logout-btn, .cast-mode .edit-pencil, .cast-mode .cast-btn, .cast-mode .credit { display: none !important; }
         .cast-mode .header { padding-bottom: 26px; }
         .cast-mode .header h1 { font-size: 60px; }
-        .cast-mode .date-row { padding: 36px 2px 30px; gap: 14px; }
-        .cast-mode .date-row .num { font-size: 54px; }
-        .cast-mode .pill { font-size: 30px; padding: 5px 16px; border-radius: 9px; }
+        .cast-mode .date-row { padding: 36px 2px 30px; gap: 14px; font-size: 54px; }
         .cast-mode .date-stamp { font-size: 22px; }
         .cast-mode .items { padding-top: 14px; }
         .cast-mode .items li { padding: 22px 2px; gap: 30px; }
@@ -193,9 +190,7 @@
             .frame { border-left-width: 8px; border-right-width: 8px; padding: 20px 18px 0; }
             .header h1 { font-size: 30px; }
             .edit-pencil { width: 36px; height: 36px; font-size: 18px; }
-            .date-row { gap: 8px; padding: 16px 0 12px; }
-            .date-row .num { font-size: 26px; }
-            .pill { font-size: 16px; }
+            .date-row { gap: 8px; padding: 16px 0 12px; font-size: 26px; }
             .date-stamp { width: 100%; margin-left: 0; }
             .items li { gap: 13px; }
             .items .circle { width: 34px; height: 34px; font-size: 17px; }
@@ -316,10 +311,10 @@
 
         function renderPublished(pub){
             const dp = (pub && pub.date) ? pub.date : rocParts();
-            $('dateRow').innerHTML = `<span class="num">${dp.y}</span><span class="pill y">年</span>`
-                + `<span class="num">${dp.m}</span><span class="pill m">月</span>`
-                + `<span class="num">${dp.d}</span><span class="pill d">日</span>`
-                + `<span class="num wd">星期${dp.w}</span>`
+            $('dateRow').innerHTML = `<span class="num">${dp.y}</span><span class="tag y">年</span>`
+                + `<span class="num">${dp.m}</span><span class="tag m">月</span>`
+                + `<span class="num">${dp.d}</span><span class="tag d">日</span>`
+                + `<span class="tag wk">星期</span><span class="wd-circle">${dp.w}</span>`
                 + ((pub && pub.label) ? `<span class="date-stamp">更新於 ${esc(pub.label)}</span>` : '');
 
             const items = (pub && pub.items) ? pub.items : [];
