@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>班級聯絡簿</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#5a7066">
+    <meta name="theme-color" content="#587069">
     <meta name="apple-mobile-web-app-title" content="班級聯絡簿">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,13 +16,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Iansui&display=swap" rel="stylesheet">
     <style>
         :root {
-            --board: #5a7066;
-            --board-2: #66807a;
-            --chalk: #f3f1e9;
-            --chalk-dim: #cdd3c9;
-            --circle: #43554c;
-            --wood: #9a8566;
-            --wood-dark: #786b52;
+            --board: #587069;
+            --board-2: #647e78;
+            --chalk: #f3f1ea;
+            --chalk-dim: #cdd3cb;
+            --circle: #42544d;
+            --wood: #93826b;
+            --wood-dark: #756950;
             --p-year: #c3452d;
             --p-month: #c87646;
             --p-day: #00798e;
@@ -32,7 +32,7 @@
         html, body { margin: 0; padding: 0; }
         body {
             font-family: 'Iansui', sans-serif;
-            background: #e9e7de;
+            background: #e8e8e2;
             color: var(--chalk);
             -webkit-font-smoothing: antialiased;
             min-height: 100vh;
@@ -64,14 +64,14 @@
         .logout-btn:hover { background: var(--del-color); color: #fff; }
 
         /* 日期列 */
-        .date-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 22px 2px 18px; font-size: 32px; }
-        .date-row .num { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.28); }
-        .tag { font-size: 0.66em; line-height: 1; background: #f3efe6; border: 2px solid; font-weight: bold; -webkit-text-stroke: 0.5px currentColor; }
-        .tag.y, .tag.m, .tag.d { display: inline-flex; align-items: center; justify-content: center; width: 1.55em; height: 1.55em; border-radius: 50%; }
+        .date-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 22px 2px 18px; font-size: 32px; }
+        .date-row .num { color: #fff; font-weight: bold; -webkit-text-stroke: 0.5px #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.28); }
+        .tag { font-size: 1em; line-height: 1; background: #f1f0e9; border: 2px solid; font-weight: bold; -webkit-text-stroke: 0.5px currentColor; }
+        .tag.y, .tag.m, .tag.d { display: inline-flex; align-items: center; justify-content: center; width: 1.5em; height: 1.5em; border-radius: 50%; }
         .tag.y { color: #c3452d; border-color: #c3452d; }
         .tag.m { color: #c87646; border-color: #c87646; }
         .tag.d { color: #00798e; border-color: #00798e; }
-        .tag.wk { color: #027990; border-color: #027990; border-radius: 9px; padding: 0.08em 0.5em; margin-left: 4px; }
+        .tag.wk { color: #027990; border-color: #027990; border-radius: 12px; padding: 0.08em 0.4em; margin-left: 4px; }
         .wd { color: #fff; font-weight: bold; -webkit-text-stroke: 0.5px #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.28); margin-left: 4px; }
         .date-stamp { margin-left: auto; color: var(--chalk-dim); font-size: 16px; }
 
@@ -173,17 +173,15 @@
         }
 
         /* ===== 投影模式(按鈕切換,不靠寬度) ===== */
-        .cast-mode .frame { max-width: none; border-left-width: 18px; border-right-width: 18px; padding: 40px 64px 0; justify-content: center; }
-        .cast-mode .admin, .cast-mode .logout-btn, .cast-mode .edit-pencil, .cast-mode .cast-btn, .cast-mode .credit { display: none !important; }
-        .cast-mode .header { padding-bottom: 26px; }
-        .cast-mode .header h1 { font-size: 60px; }
-        .cast-mode .date-row { padding: 36px 2px 30px; gap: 14px; font-size: 54px; }
-        .cast-mode .date-stamp { font-size: 22px; }
-        .cast-mode .items { padding-top: 14px; }
-        .cast-mode .items li { padding: 22px 2px; gap: 30px; }
-        .cast-mode .items .circle { width: 72px; height: 72px; font-size: 40px; }
-        .cast-mode .items .txt { font-size: 54px; padding-top: 9px; }
-        .cast-mode .chalk-tray { margin-top: 34px; height: 22px; }
+        .cast-mode .frame { max-width: none; border-left-width: 18px; border-right-width: 18px; padding: 30px 64px 0; justify-content: center; }
+        .cast-mode .admin, .cast-mode .logout-btn, .cast-mode .edit-pencil, .cast-mode .cast-btn, .cast-mode .credit, .cast-mode .header { display: none !important; }
+        .cast-mode .date-row { padding: 0 2px 22px; gap: 16px; font-size: var(--castItem, 54px); }
+        .cast-mode .date-stamp { font-size: 0.42em; }
+        .cast-mode .items { padding-top: 6px; }
+        .cast-mode .items li { padding: calc(var(--castItem, 54px) * 0.30) 2px; gap: 24px; }
+        .cast-mode .items .circle { width: calc(var(--castItem, 54px) * 1.32); height: calc(var(--castItem, 54px) * 1.32); font-size: calc(var(--castItem, 54px) * 0.66); }
+        .cast-mode .items .txt { font-size: var(--castItem, 54px); }
+        .cast-mode .chalk-tray { margin-top: 16px; height: 18px; }
         .cast-mode .cast-exit { display: flex; align-items: center; justify-content: center; }
 
         /* ===== RWD:手機(≤640) ===== */
@@ -321,6 +319,7 @@
             const items = (pub && pub.items) ? pub.items : [];
             if(!items.length){ $('itemList').innerHTML = `<li class="empty-note">今天還沒有發布聯絡簿</li>`; }
             else { $('itemList').innerHTML = items.map((t,i)=> `<li><span class="circle">${i+1}</span><span class="txt">${esc(t)}</span></li>`).join(''); }
+            requestAnimationFrame(fitCast);
         }
 
         function renderEditor(){
@@ -428,14 +427,27 @@
         $('logoutBtn').onclick = ()=> signOut(auth);
 
         // 投影模式:按鈕或網址 #cast 切換;Esc 離開。藏掉編輯區與按鈕、字級放大、全螢幕置中。
+        function fitCast(){
+            const html=document.documentElement;
+            if(!html.classList.contains('cast-mode')) return;
+            const frame=document.querySelector('.frame');
+            let size=56;
+            html.style.setProperty('--castItem', size+'px');
+            let guard=0;
+            while(frame.offsetHeight > window.innerHeight - 4 && size>18 && guard<70){
+                size-=2; html.style.setProperty('--castItem', size+'px'); guard++;
+            }
+        }
         function setCast(on){
             document.documentElement.classList.toggle('cast-mode', on);
-            if(on){ if(location.hash!=='#cast') history.replaceState(null,'','#cast'); }
+            if(on){ if(location.hash!=='#cast') history.replaceState(null,'','#cast'); requestAnimationFrame(fitCast); }
             else if(location.hash==='#cast'){ history.replaceState(null,'',location.pathname+location.search); }
         }
         $('castBtn').onclick = ()=> setCast(true);
         $('castExit').onclick = ()=> setCast(false);
         document.addEventListener('keydown', e=>{ if(e.key==='Escape') setCast(false); });
+        window.addEventListener('resize', ()=> requestAnimationFrame(fitCast));
+        if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=> requestAnimationFrame(fitCast));
         if(location.hash==='#cast') setCast(true);
     </script>
 </body>
