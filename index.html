@@ -38,9 +38,9 @@
             min-height: 100vh;
         }
         .frame {
+            --pad: 96px;
             max-width: 1100px;
             margin: 0 auto;
-            min-height: 100vh;
             background: var(--board);
             background-image:
                 radial-gradient(circle at 20% 30%, rgba(255,255,255,0.035), transparent 45%),
@@ -48,14 +48,14 @@
             border-left: 14px solid var(--wood);
             border-right: 14px solid var(--wood);
             box-shadow: inset 0 0 90px rgba(0,0,0,0.35);
-            padding: 30px 64px 0;
+            padding: 20px var(--pad) 0;
             display: flex;
             flex-direction: column;
         }
 
         /* 標題 */
         .header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-bottom: 16px; border-bottom: 1px solid rgba(244,241,232,0.22); }
-        .header h1 { margin: 0; font-size: 38px; color: var(--chalk); display: flex; align-items: center; gap: 12px; letter-spacing: 1px; }
+        .header h1 { margin: 0; font-size: 44px; color: var(--chalk); display: flex; align-items: center; gap: 12px; letter-spacing: 1px; }
         .header h1 .bag { user-select: none; -webkit-user-select: none; touch-action: manipulation; cursor: default; }
         .header h1 .num { color: #ffe6b0; }
         .edit-pencil { width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--chalk); background: transparent; color: var(--chalk); font-size: 22px; cursor: pointer; line-height: 1; padding: 0; }
@@ -64,8 +64,8 @@
         .logout-btn:hover { background: var(--del-color); color: #fff; }
 
         /* 日期列 */
-        .date-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 22px 2px 18px; font-size: 32px; }
-        .date-row .num { color: #fff; font-weight: bold; -webkit-text-stroke: 0.5px #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.28); }
+        .date-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 2px 16px; font-size: 38px; }
+        .date-row .num { color: #fff; font-weight: bold; -webkit-text-stroke: 0.5px #fff; }
         .tag { font-size: 1em; line-height: 1; background: #f1f0e9; border: 2px solid; font-weight: bold; -webkit-text-stroke: 0.5px currentColor; }
         .tag.y, .tag.m, .tag.d { display: inline-flex; align-items: center; justify-content: center; width: 1.5em; height: 1.5em; border-radius: 50%; }
         .tag.y { color: #bb482f; border-color: #bb482f; padding-bottom: 0.05em; }
@@ -73,23 +73,23 @@
         .tag.d { color: #8f7a60; border-color: #8f7a60; padding-bottom: 0.12em; }
         .tag.wk { color: #05798c; border-color: #05798c; border-radius: 0.7em; height: 1.5em; padding: 0 0.2em; display: inline-flex; align-items: center; }
         .wkwrap { display: inline-flex; align-items: center; gap: 3px; margin-left: 4px; }
-        .wd { color: #fff; font-weight: bold; -webkit-text-stroke: 0.5px #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.28); }
+        .wd { color: #fff; font-weight: bold; -webkit-text-stroke: 0.5px #fff; }
         .date-stamp { margin-left: auto; color: var(--chalk-dim); font-size: 16px; }
 
         /* 聯絡事項 */
-        .items { list-style: none; margin: 0; padding: 8px 2px 0; flex: 1; }
-        .items li { display: flex; align-items: center; gap: 18px; padding: 14px 2px; }
+        .items { list-style: none; margin: 0; padding: 8px 2px 0; }
+        .items li { display: flex; align-items: center; gap: 20px; padding: 16px 2px; }
         .items .circle {
-            flex: none; width: 42px; height: 42px; border-radius: 50%;
+            flex: none; width: 50px; height: 50px; border-radius: 50%;
             background: var(--circle); color: #fff;
-            display: flex; align-items: center; justify-content: center; font-size: 25px; font-weight: bold;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: bold;
         }
-        .items .txt { color: var(--chalk); font-size: 26px; line-height: 1.4; letter-spacing: 0.5px; }
-        .empty-note { color: var(--chalk-dim); font-size: 22px; padding: 40px 2px; text-align: center; }
+        .items .txt { color: #fff; font-size: 31px; line-height: 1.4; letter-spacing: 0.5px; }
+        .items .txt.hl { color: #ffde59; }
+        .empty-note { color: var(--chalk-dim); font-size: 26px; padding: 40px 2px; text-align: center; }
 
         /* 粉筆槽 */
-        .chalk-tray { margin: 20px -64px 0; height: 16px; background: var(--wood); border-top: 2px solid var(--wood-dark); position: relative; }
+        .chalk-tray { margin: 20px calc(-1 * var(--pad)) 0; height: 16px; background: var(--wood); border-top: 2px solid var(--wood-dark); position: relative; }
         .chalk-tray::before, .chalk-tray::after { content: ''; position: absolute; top: -6px; height: 7px; border-radius: 5px; }
         .chalk-tray::before { left: 12%; width: 60px; background: #f4f1e8; }
         .chalk-tray::after { left: calc(12% + 78px); width: 38px; background: #c4bdac; }
@@ -133,7 +133,7 @@
         .pub-stamp { color: var(--chalk-dim); font-size: 1em; }
 
         /* 署名 */
-        .credit { text-align: center; color: var(--chalk-dim); font-size: 1.1em; letter-spacing: 0.5px; padding: 16px 0; }
+        .credit { text-align: center; color: #8a8d84; font-size: 15px; letter-spacing: 0.5px; padding: 14px 0 22px; }
 
         /* 登入框 */
         .hidden { display: none !important; }
@@ -157,24 +157,24 @@
 
         /* ===== RWD:平板(641–1024) ===== */
         @media (min-width: 641px) and (max-width: 1024px) {
-            .frame { max-width: 840px; padding: 28px 30px 0; }
-            .header h1 { font-size: 34px; }
-            .date-row { font-size: 30px; }
+            .frame { max-width: 840px; --pad: 44px; }
+            .header h1 { font-size: 38px; }
+            .date-row { font-size: 34px; }
             .items li { gap: 20px; padding: 16px 2px; }
-            .items .circle { width: 48px; height: 48px; font-size: 28px; }
+            .items .circle { width: 50px; height: 50px; font-size: 30px; }
             .items .txt { font-size: 30px; }
         }
 
         /* ===== RWD:大尺寸電腦/螢幕(≥1280) ===== */
         @media (min-width: 1280px) {
-            .header h1 { font-size: 42px; }
-            .date-row { font-size: 36px; }
-            .items .circle { width: 46px; height: 46px; font-size: 28px; }
-            .items .txt { font-size: 30px; }
+            .header h1 { font-size: 48px; }
+            .date-row { font-size: 42px; }
+            .items .circle { width: 54px; height: 54px; font-size: 32px; }
+            .items .txt { font-size: 34px; }
         }
 
         /* ===== 投影模式(按鈕切換,不靠寬度) ===== */
-        .cast-mode .frame { max-width: none; border-left-width: 18px; border-right-width: 18px; padding: 9vh 64px 0; justify-content: flex-start; }
+        .cast-mode .frame { max-width: none; min-height: 100vh; border-left-width: 18px; border-right-width: 18px; padding: 6vh var(--pad) 0; justify-content: flex-start; }
         .cast-mode .admin, .cast-mode .logout-btn, .cast-mode .edit-pencil, .cast-mode .cast-btn, .cast-mode .credit, .cast-mode .header { display: none !important; }
         .cast-mode .date-row { padding: 0 2px 22px; gap: 16px; font-size: var(--castItem, 54px); }
         .cast-mode .date-stamp { font-size: 0.42em; }
@@ -187,7 +187,7 @@
 
         /* ===== RWD:手機(≤640) ===== */
         @media (max-width: 640px) {
-            .frame { border-left-width: 8px; border-right-width: 8px; padding: 20px 18px 0; }
+            .frame { --pad: 18px; border-left-width: 8px; border-right-width: 8px; }
             .header h1 { font-size: 30px; }
             .edit-pencil { width: 36px; height: 36px; font-size: 18px; }
             .date-row { gap: 8px; padding: 16px 0 12px; font-size: 26px; }
@@ -247,8 +247,8 @@
     <ul class="items" id="itemList"></ul>
 
     <div class="chalk-tray"></div>
-    <footer class="credit">created by 怡臻老師</footer>
   </div>
+  <footer class="credit">created by 怡臻老師</footer>
 
     <div id="inputModal" class="modal-overlay">
         <div class="modal-content">
@@ -319,7 +319,7 @@
 
             const items = (pub && pub.items) ? pub.items : [];
             if(!items.length){ $('itemList').innerHTML = `<li class="empty-note">今天還沒有發布聯絡簿</li>`; }
-            else { $('itemList').innerHTML = items.map((t,i)=> `<li><span class="circle">${i+1}</span><span class="txt">${esc(t)}</span></li>`).join(''); }
+            else { $('itemList').innerHTML = items.map((t,i)=> { const hl=(t.indexOf('簽名')>=0||t.indexOf('訂簽')>=0)?' hl':''; return `<li><span class="circle">${i+1}</span><span class="txt${hl}">${esc(t)}</span></li>`; }).join(''); }
             requestAnimationFrame(fitCast);
         }
 
