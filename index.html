@@ -45,8 +45,8 @@
             background-image:
                 radial-gradient(circle at 20% 30%, rgba(255,255,255,0.035), transparent 45%),
                 radial-gradient(circle at 80% 70%, rgba(255,255,255,0.03), transparent 45%);
-            border-left: 14px solid var(--wood);
-            border-right: 14px solid var(--wood);
+            border-left: 20px solid var(--wood);
+            border-right: 20px solid var(--wood);
             box-shadow: inset 0 0 90px rgba(0,0,0,0.35);
             padding: 20px var(--pad) 0;
             display: flex;
@@ -65,13 +65,14 @@
 
         /* 日期列 */
         .date-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 2px 16px; font-size: 38px; }
+        .dateline { display: inline-flex; align-items: center; gap: 12px; flex-wrap: wrap; }
         .date-row .num { color: #fff; font-weight: bold; -webkit-text-stroke: 0.5px #fff; }
         .tag { font-size: 1em; line-height: 1; background: #f1f0e9; border: 2px solid; font-weight: bold; -webkit-text-stroke: 0.5px currentColor; }
         .tag.y, .tag.m, .tag.d { display: inline-flex; align-items: center; justify-content: center; width: 1.5em; height: 1.5em; border-radius: 50%; }
         .tag.y { color: #bb482f; border-color: #bb482f; padding-bottom: 0.05em; }
         .tag.m { color: #c57249; border-color: #c57249; padding-bottom: 0.12em; }
         .tag.d { color: #8f7a60; border-color: #8f7a60; padding-bottom: 0.12em; }
-        .tag.wk { color: #05798c; border-color: #05798c; border-radius: 0.7em; height: 1.5em; padding: 0 0.2em; display: inline-flex; align-items: center; }
+        .tag.wk { color: #05798c; border-color: #05798c; border-radius: 0.42em; height: 1.5em; padding: 0 0.2em; display: inline-flex; align-items: center; }
         .wkwrap { display: inline-flex; align-items: center; gap: 3px; margin-left: 4px; }
         .wd { color: #fff; font-weight: bold; -webkit-text-stroke: 0.5px #fff; }
         .date-stamp { margin-left: auto; color: var(--chalk-dim); font-size: 16px; }
@@ -174,7 +175,7 @@
         }
 
         /* ===== 投影模式(按鈕切換,不靠寬度) ===== */
-        .cast-mode .frame { max-width: none; min-height: 100vh; border-left-width: 18px; border-right-width: 18px; padding: 6vh var(--pad) 0; justify-content: flex-start; }
+        .cast-mode .frame { max-width: none; min-height: 100vh; border-left-width: 26px; border-right-width: 26px; padding: 6vh var(--pad) 0; justify-content: flex-start; }
         .cast-mode .admin, .cast-mode .logout-btn, .cast-mode .edit-pencil, .cast-mode .cast-btn, .cast-mode .credit, .cast-mode .header { display: none !important; }
         .cast-mode .date-row { padding: 0 2px 22px; gap: 16px; font-size: var(--castItem, 54px); }
         .cast-mode .date-stamp { font-size: 0.42em; }
@@ -187,15 +188,20 @@
 
         /* ===== RWD:手機(≤640) ===== */
         @media (max-width: 640px) {
-            .frame { --pad: 18px; border-left-width: 8px; border-right-width: 8px; }
+            body { display: flex; flex-direction: column; }
+            .frame { --pad: 18px; border-left-width: 12px; border-right-width: 12px; flex: 1 0 auto; }
+            .cast-btn { display: none; }
             .header h1 { font-size: 30px; }
             .edit-pencil { width: 36px; height: 36px; font-size: 18px; }
-            .date-row { gap: 8px; padding: 16px 0 12px; font-size: 26px; }
-            .date-stamp { width: 100%; margin-left: 0; }
-            .items li { gap: 13px; }
+            .date-row { gap: 6px; padding: 14px 0 12px; font-size: min(24px, calc((100vw - 60px) / 13)); flex-wrap: nowrap; }
+            .dateline { flex-wrap: nowrap; gap: 5px; white-space: nowrap; }
+            .date-stamp { display: none; }
+            .items { padding-top: 4px; }
+            .items li { gap: 13px; padding: 7px 2px; }
             .items .circle { width: 38px; height: 38px; font-size: 21px; }
             .items .txt { font-size: 21px; }
-            .chalk-tray { margin-left: -18px; margin-right: -18px; }
+            .chalk-tray { margin-top: auto; }
+            .credit { padding: 10px 0 14px; }
             .subj-row .fields { margin-left: 0; width: 100%; }
             .new-subj { flex-direction: column; align-items: stretch; }
             .new-subj .input, .new-subj button { width: 100%; }
@@ -311,10 +317,10 @@
 
         function renderPublished(pub){
             const dp = (pub && pub.date) ? pub.date : rocParts();
-            $('dateRow').innerHTML = `<span class="num">${dp.y}</span><span class="tag y">年</span>`
+            $('dateRow').innerHTML = `<span class="dateline"><span class="num">${dp.y}</span><span class="tag y">年</span>`
                 + `<span class="num">${dp.m}</span><span class="tag m">月</span>`
                 + `<span class="num">${dp.d}</span><span class="tag d">日</span>`
-                + `<span class="wkwrap"><span class="tag wk">星期</span><span class="wd">${dp.w}</span></span>`
+                + `<span class="wkwrap"><span class="tag wk">星期</span><span class="wd">${dp.w}</span></span></span>`
                 + ((pub && pub.label) ? `<span class="date-stamp">更新於 ${esc(pub.label)}</span>` : '');
 
             const items = (pub && pub.items) ? pub.items : [];
