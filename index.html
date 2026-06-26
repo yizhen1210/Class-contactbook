@@ -117,6 +117,7 @@
         .acc-badge { background: var(--p-day); color: #fff; font-size: 0.78em; min-width: 22px; height: 22px; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center; padding: 0 6px; }
         .acc-body { padding: 0 0 12px 26px; }
         .acc-body:empty { display: none; }
+        .sec-title { display: flex; align-items: center; gap: 10px; margin: 24px 0 6px; font-size: 1.45em; color: var(--chalk); cursor: pointer; user-select: none; font-weight: normal; }
         .hw-static { color: var(--chalk); font-size: 1.05em; }
         .input { background: rgba(255,255,255,0.07); border: 1px solid rgba(244,241,232,0.4); border-radius: 10px; font-family: inherit; color: var(--chalk); }
         .field .input { width: 64px; height: 40px; text-align: center; font-size: 1.1em; }
@@ -232,19 +233,17 @@
     <!-- 老師編輯區 -->
     <div id="adminArea" class="admin admin-only hidden">
         <h2 class="admin-title">書寫作業</h2>
-        <p class="admin-sub">點科目展開，勾選要列入的作業；可填 L 課數與頁數（頁數填起、迄會自動展開連續多頁）</p>
+        <p class="admin-sub">點科目展開；國語為固定選項，其餘科目可自行新增。勾選的才會列入聯絡簿</p>
         <div id="hwList"></div>
 
-        <h2 class="admin-title" style="margin-top:24px;">習作簽名</h2>
+        <div id="wbHead"></div>
         <div id="wbList"></div>
 
-        <h2 class="admin-title" style="margin-top:24px;">考試訂簽</h2>
-        <p class="admin-sub">點科目展開，新增要訂簽的項目</p>
+        <div id="rvHead"></div>
         <div id="reviewList"></div>
 
-        <h2 class="admin-title" style="margin-top:24px;">考試</h2>
-        <p class="admin-sub">點科目展開，新增小考或段考</p>
-        <div id="examList"></div>
+        <div id="exHead"></div>
+        <div id="examWrap"><div id="examTiming" style="margin:6px 0 10px;"></div><div id="examList"></div></div>
 
         <h2 class="admin-title" style="margin-top:24px;">其他事項</h2>
         <p class="admin-sub">臨時、非固定的項目，如帶物品</p>
@@ -309,13 +308,16 @@
 
         let isTeacher = false;
         let editorReady = false;
-        let hwEntries = [{id:"h1",subj:"chi",on:false,name:"習",lesson:"",pStart:"",pEnd:""},{id:"h2",subj:"mat",on:false,name:"習",lesson:"",pStart:"",pEnd:""}];
-        let reviewEntries = [];   // {id,subj,on,lesson,pStart,pEnd}
-        let examEntries = [];     // {id,subj,on,type,lesson,pStart,pEnd}
+        let hwEntries = [{id:"h2",subj:"mat",on:false,name:"習",lesson:"",pStart:"",pEnd:""}];
+        let chiPresets = { p1:{on:false,L:"",opt:"甲",a:"",b:""}, p2:{on:false,L:""}, p3:{on:false,opt:"甲",L:"",n:""}, p4:{on:false,L:""} };
+        let reviewEntries = [];   // {id,subj,on,name}
+        let examEntries = [];     // {id,subj,on,type,name,lStart,lEnd}
         let wbSign = {chi:{on:false,pStart:"",pEnd:""}, mat:{on:false,pStart:"",pEnd:""}};
         let extras = ["帶大袋子"];
+        let examTiming = "auto";  // auto | 明 | 下一 | 收假
         let className = "508";
-        const openSet = {};       // 折疊狀態(僅介面用)
+        const openSet = {};       // 科目折疊狀態(介面用)
+        const openSec = { wb:false, rv:false, ex:false };  // 大段落折疊狀態
 
         function uid(p){ return p+Math.random().toString(36).slice(2,7); }
         function sTrim(v){ return (v!=null && String(v).trim()!=="") ? String(v).trim() : ""; }
@@ -330,19 +332,27 @@
         function pTxt(a,b){ const pg=pagesText(a,b); return pg ? ("p."+pg) : ""; }
         const SUBJ_ABBR = {chi:"國", mat:"數", sci:"自", soc:"社", eng:"英", etc:"其"};
         function hwText(e){ let t=SUBJ_ABBR[e.subj]+sTrim(e.name); const L=sTrim(e.lesson); if(L)t+=" L"+L; const pg=pTxt(e.pStart,e.pEnd); if(pg)t+=" "+pg; return t; }
+        function chiText(){
+            const out=[], c=chiPresets;
+            if(c.p1.on && sTrim(c.p1.L)){ let t="讀L"+sTrim(c.p1.L)+"課文＋"+(c.p1.opt||"甲")+"本"; const a=sTrim(c.p1.a),b=sTrim(c.p1.b); if(a) t+="p."+a+(b?("～"+b):""); out.push(t); }
+            if(c.p2.on && sTrim(c.p2.L)) out.push("L"+sTrim(c.p2.L)+"預習單");
+            if(c.p3.on && sTrim(c.p3.L)) out.push("生"+(c.p3.opt||"甲")+"L"+sTrim(c.p3.L)+"("+sTrim(c.p3.n)+")＋造詞");
+            if(c.p4.on && sTrim(c.p4.L)) out.push("L"+sTrim(c.p4.L)+"圈詞2次");
+            return out;
+        }
         function wbText(s,w){ let t="簽"+SUBJ_ABBR[s]+"習"; const pg=pTxt(w.pStart,w.pEnd); if(pg)t+=" "+pg; return t; }
-        function reviewText(e){ return SUBJ_NAME[e.subj]+"訂簽（　）分"; }
+        function reviewText(e){ const nm=sTrim(e.name); let base = nm==="卷" ? (SUBJ_ABBR[e.subj]+"卷") : (nm || SUBJ_NAME[e.subj]); return base+"訂簽（　）分"; }
+        function timingWord(){ if(examTiming==="明")return"明"; if(examTiming==="下一")return"下(一)"; if(examTiming==="下二")return"下(二)"; return (new Date().getDay()===5)?"下(一)":"明"; }
+        function examText(e){ let t=timingWord()+(e.type==="段考"?"段考":"考")+sTrim(e.name); const ls=sTrim(e.lStart), le=sTrim(e.lEnd); if(ls){ t+=" L"+ls+(le?("～L"+le):""); } return t; }
 
         function buildItems(){
             const out=[];
             const bySubj=(a,b)=> (SUBJ_ORDER[a.e.subj]??9)-(SUBJ_ORDER[b.e.subj]??9) || a.i-b.i;
-            hwEntries.map((e,i)=>({e,i})).filter(o=>o.e.on).sort(bySubj).forEach(o=>{ if(sTrim(o.e.name)||sTrim(o.e.lesson)||pTxt(o.e.pStart,o.e.pEnd)) out.push(hwText(o.e)); });
+            chiText().forEach(t=> out.push(t));   // 國語(科目順序最前)
+            hwEntries.map((e,i)=>({e,i})).filter(o=>o.e.on && o.e.subj!=="chi").sort(bySubj).forEach(o=>{ if(sTrim(o.e.name)||sTrim(o.e.lesson)||pTxt(o.e.pStart,o.e.pEnd)) out.push(hwText(o.e)); });
             ["chi","mat"].forEach(s=>{ const w=wbSign[s]; if(w&&w.on) out.push(wbText(s,w)); });
             reviewEntries.map((e,i)=>({e,i})).filter(o=>o.e.on).sort(bySubj).forEach(o=> out.push(reviewText(o.e)));
-            const quiz=[], term=[];
-            examEntries.filter(e=>e.on).slice().sort((a,b)=>(SUBJ_ORDER[a.subj]??9)-(SUBJ_ORDER[b.subj]??9)).forEach(e=>{ const nm=SUBJ_NAME[e.subj]; if((e.type||"小考")==="小考"){ if(!quiz.includes(nm)) quiz.push(nm); } else { if(!term.includes(nm)) term.push(nm); } });
-            if(quiz.length) out.push("明考"+quiz.join("、"));
-            if(term.length) out.push("明段考"+term.join("、"));
+            examEntries.map((e,i)=>({e,i})).filter(o=>o.e.on).sort((a,b)=> ((a.e.type==="段考")-(b.e.type==="段考")) || bySubj(a,b)).forEach(o=> out.push(examText(o.e)));
             extras.forEach(t=>{ if(t&&t.trim()) out.push(t.trim()); });
             return out;
         }
@@ -350,8 +360,8 @@
         function findE(sec,id){ const a=arrOf(sec); return a ? a.find(e=>e.id===id) : null; }
         function newEntry(sec, sid){
             if(sec==="hw") return {id:uid("h"),subj:sid,on:true,name:"",lesson:"",pStart:"",pEnd:""};
-            if(sec==="rv") return {id:uid("r"),subj:sid,on:true,lesson:"",pStart:"",pEnd:""};
-            return {id:uid("x"),subj:sid,on:true,type:"小考",lesson:"",pStart:"",pEnd:""};
+            if(sec==="rv") return {id:uid("r"),subj:sid,on:true,name:""};
+            return {id:uid("x"),subj:sid,on:true,type:"小考",name:"",lStart:"",lEnd:""};
         }
         function rocParts(){ const n=new Date(); return {y:n.getFullYear()-1911,m:n.getMonth()+1,d:n.getDate(),w:WEEKDAYS[n.getDay()]}; }
         function esc(s){ return String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
@@ -372,46 +382,77 @@
 
         function pageFields(k,e){ return `<span class="hw-field">p.<input class="input hw-num" type="number" min="1" value="${esc(e.pStart||'')}" data-f="${k}:pStart"> ～ <input class="input hw-num" type="number" min="1" value="${esc(e.pEnd||'')}" data-f="${k}:pEnd"></span>`; }
         function hwRow(sec,e){ const k=sec+":"+e.id; return `<div class="hw-row"><input type="checkbox" class="hw-on" data-on="${k}" ${e.on?'checked':''}>`
-            + `<input class="input hw-type" placeholder="作業名稱，如 習作 / 課本 / 甲本" value="${esc(e.name||'')}" data-f="${k}:name">`
+            + `<input class="input hw-type" placeholder="作業名稱，如 習 / 課 / 卷" value="${esc(e.name||'')}" data-f="${k}:name">`
             + `<span class="hw-field">L<input class="input hw-num" type="number" min="1" value="${esc(e.lesson||'')}" data-f="${k}:lesson"></span>`
             + pageFields(k,e) + `<button class="rowbtn" data-del="${k}">刪除</button></div>`; }
         function reviewRow(sec,e){ const k=sec+":"+e.id; return `<div class="hw-row"><input type="checkbox" class="hw-on" data-on="${k}" ${e.on?'checked':''}>`
-            + `<span class="hw-static">考試訂簽（　）分</span>`
+            + `<input class="input hw-type" placeholder="名稱（打「卷」會變成科目縮寫＋卷）" value="${esc(e.name||'')}" data-f="${k}:name">`
+            + `<span class="hw-static">訂簽（　）分</span>`
             + `<button class="rowbtn" data-del="${k}">刪除</button></div>`; }
         function examRow(sec,e){ const k=sec+":"+e.id; const opt=t=>`<option value="${t}" ${(e.type||'小考')===t?'selected':''}>${t}</option>`;
             return `<div class="hw-row"><input type="checkbox" class="hw-on" data-on="${k}" ${e.on?'checked':''}>`
             + `<select class="hw-subj" data-f="${k}:type">${opt('小考')}${opt('段考')}</select>`
+            + `<input class="input hw-type" placeholder="考試名稱，如 數學第三單元" value="${esc(e.name||'')}" data-f="${k}:name">`
+            + `<span class="hw-field">L<input class="input hw-num" type="number" min="1" value="${esc(e.lStart||'')}" data-f="${k}:lStart"> ～ L<input class="input hw-num" type="number" min="1" value="${esc(e.lEnd||'')}" data-f="${k}:lEnd"></span>`
             + `<button class="rowbtn" data-del="${k}">刪除</button></div>`; }
+        function chiPresetRows(){
+            const c=chiPresets;
+            const optSel=(p,cur)=>`<select class="hw-subj" data-cps="${p}:opt"><option value="甲" ${cur==='甲'?'selected':''}>甲</option><option value="乙" ${cur==='乙'?'selected':''}>乙</option></select>`;
+            const num=(p,f,v,ph)=>`<input class="input hw-num" type="number" min="1" value="${esc(v||'')}" data-cp="${p}:${f}" ${ph?`placeholder="${ph}"`:''}>`;
+            const onbox=(p,on)=>`<input type="checkbox" class="hw-on" data-cpon="${p}" ${on?'checked':''}>`;
+            return `<div class="hw-row">${onbox('p1',c.p1.on)}<span class="hw-static">讀L</span>${num('p1','L',c.p1.L)}<span class="hw-static">課文＋</span>${optSel('p1',c.p1.opt)}<span class="hw-static">本 p.</span>${num('p1','a',c.p1.a)}<span class="hw-static">～</span>${num('p1','b',c.p1.b)}</div>`
+                + `<div class="hw-row">${onbox('p2',c.p2.on)}<span class="hw-static">L</span>${num('p2','L',c.p2.L)}<span class="hw-static">預習單</span></div>`
+                + `<div class="hw-row">${onbox('p3',c.p3.on)}<span class="hw-static">生</span>${optSel('p3',c.p3.opt)}<span class="hw-static">L</span>${num('p3','L',c.p3.L)}<span class="hw-static">(</span>${num('p3','n',c.p3.n)}<span class="hw-static">)＋造詞</span></div>`
+                + `<div class="hw-row">${onbox('p4',c.p4.on)}<span class="hw-static">L</span>${num('p4','L',c.p4.L)}<span class="hw-static">圈詞2次</span></div>`;
+        }
         function accordion(sec, subjList, entriesArr, rowFn){
             return subjList.map(sid=>{
+                const isChi = (sec==="hw" && sid==="chi");
                 const ents = entriesArr.filter(e=>e.subj===sid);
                 const open = !!openSet[sec+":"+sid];
-                const cc = ents.filter(e=>e.on).length;
-                const body = open ? (ents.map(e=>rowFn(sec,e)).join('') + `<button class="add-line-btn" data-add="${sec}:${sid}">＋ 新增</button>`) : "";
+                const cc = isChi ? Object.keys(chiPresets).filter(p=>chiPresets[p].on).length : ents.filter(e=>e.on).length;
+                let body="";
+                if(open){
+                    if(isChi) body = chiPresetRows();
+                    else body = ents.map(e=>rowFn(sec,e)).join('') + `<button class="add-line-btn" data-add="${sec}:${sid}">＋ 新增</button>`;
+                }
                 return `<div class="acc ${open?'open':''}">`
                     + `<div class="acc-head" data-acc="${sec}:${sid}"><span class="acc-arrow">${open?'▾':'▸'}</span><span class="acc-name">${esc(SUBJ_NAME[sid])}</span>${cc?`<span class="acc-badge">${cc}</span>`:''}</div>`
                     + `<div class="acc-body">${body}</div></div>`;
             }).join('');
         }
+        function secHead(sec, label){ const open=openSec[sec]; return `<h2 class="sec-title" data-sec="${sec}"><span class="acc-arrow">${open?'▾':'▸'}</span>${label}</h2>`; }
         function renderEditor(){
             $('hwList').innerHTML = accordion('hw', HW_SUBJ, hwEntries, hwRow);
+
+            $('wbHead').innerHTML = secHead('wb','習作簽名');
+            $('wbList').style.display = openSec.wb ? 'block' : 'none';
             $('wbList').innerHTML = ["chi","mat"].map(s=>{ const w=wbSign[s]||{};
                 return `<div class="hw-row"><input type="checkbox" class="hw-on" data-wbon="${s}" ${w.on?'checked':''}><span class="hw-static">${esc(SUBJ_NAME[s])}習作簽名</span>`
                     + `<span class="hw-field">p.<input class="input hw-num" type="number" min="1" value="${esc(w.pStart||'')}" data-wb="${s}:pStart"> ～ <input class="input hw-num" type="number" min="1" value="${esc(w.pEnd||'')}" data-wb="${s}:pEnd"></span></div>`;
             }).join('');
+
+            $('rvHead').innerHTML = secHead('rv','考試訂簽');
+            $('reviewList').style.display = openSec.rv ? 'block' : 'none';
             $('reviewList').innerHTML = accordion('rv', EXAM_SUBJ, reviewEntries, reviewRow);
+
+            $('exHead').innerHTML = secHead('ex','考試');
+            $('examWrap').style.display = openSec.ex ? 'block' : 'none';
+            const tOpt=(v,lbl)=>`<option value="${v}" ${examTiming===v?'selected':''}>${lbl}</option>`;
+            $('examTiming').innerHTML = `<label class="hw-field">考試時機：<select class="hw-subj" id="timingSel">${tOpt('auto','自動(週五自動變下一)')}${tOpt('明','明天')}${tOpt('下一','下(一)')}${tOpt('下二','下(二)')}</select></label>`;
             $('examList').innerHTML = accordion('ex', EXAM_SUBJ, examEntries, examRow);
+
             $('extraList').innerHTML = extras.map((t,i)=>
                 `<div class="extra-row"><input class="input" value="${esc(t)}" data-ex="${i}" placeholder="輸入事項，如 帶大袋子"><button class="rowbtn" data-del-ex="${i}">刪除</button></div>`
             ).join('');
         }
 
         let saveTimer = null;
-        function saveConfig(){ clearTimeout(saveTimer); saveTimer=setTimeout(()=>{ setDoc(bookRef,{hwEntries,reviewEntries,examEntries,wbSign,extras,className},{merge:true}).catch(e=>console.warn(e)); },700); }
+        function saveConfig(){ clearTimeout(saveTimer); saveTimer=setTimeout(()=>{ setDoc(bookRef,{hwEntries,chiPresets,reviewEntries,examEntries,wbSign,examTiming,extras,className},{merge:true}).catch(e=>console.warn(e)); },700); }
         async function publish(){
             const dp = rocParts(); const now = new Date();
             const label = `${dp.y}/${dp.m}/${dp.d} ${now.getHours()}:${("0"+now.getMinutes()).slice(-2)}`;
-            try{ await setDoc(bookRef,{hwEntries,reviewEntries,examEntries,wbSign,extras,className,published:{items:buildItems(),date:dp,label}},{merge:true}); $('pubStamp').textContent="已發布 · "+label; }
+            try{ await setDoc(bookRef,{hwEntries,chiPresets,reviewEntries,examEntries,wbSign,examTiming,extras,className,published:{items:buildItems(),date:dp,label}},{merge:true}); $('pubStamp').textContent="已發布 · "+label; }
             catch(e){ alert("發布失敗，請確認已登入且 Firestore 規則允許寫入"); console.warn(e); }
         }
 
@@ -422,9 +463,11 @@
                 renderPublished(data.published || null);
                 if(isTeacher && !editorReady){
                     if(Array.isArray(data.hwEntries)) hwEntries=data.hwEntries;
+                    if(data.chiPresets && typeof data.chiPresets==='object'){ Object.keys(chiPresets).forEach(p=>{ if(data.chiPresets[p]) Object.assign(chiPresets[p], data.chiPresets[p]); }); }
                     if(Array.isArray(data.reviewEntries)) reviewEntries=data.reviewEntries;
                     if(Array.isArray(data.examEntries)) examEntries=data.examEntries;
                     if(data.wbSign && typeof data.wbSign==='object') wbSign=Object.assign({chi:{on:false,pStart:"",pEnd:""},mat:{on:false,pStart:"",pEnd:""}}, data.wbSign);
+                    if(typeof data.examTiming==='string') examTiming=data.examTiming;
                     if(Array.isArray(data.extras)) extras=data.extras;
                     editorReady=true; renderEditor();
                 }
@@ -467,16 +510,22 @@
         document.addEventListener('input', e=>{
             const t=e.target;
             if(t.dataset.f){ const p=t.dataset.f.split(':'); const en=findE(p[0],p[1]); if(en){ en[p[2]]=t.value; saveConfig(); } }
+            if(t.dataset.cp){ const p=t.dataset.cp.split(':'); chiPresets[p[0]][p[1]]=t.value; saveConfig(); }
             if(t.dataset.wb){ const p=t.dataset.wb.split(':'); wbSign[p[0]]=wbSign[p[0]]||{}; wbSign[p[0]][p[1]]=t.value; saveConfig(); }
             if(t.dataset.ex!=null){ extras[+t.dataset.ex]=t.value; saveConfig(); }
         });
         document.addEventListener('change', e=>{
             const t=e.target;
             if(t.dataset.f){ const p=t.dataset.f.split(':'); const en=findE(p[0],p[1]); if(en){ en[p[2]]=t.value; saveConfig(); } }
+            if(t.dataset.cps){ const p=t.dataset.cps.split(':'); chiPresets[p[0]][p[1]]=t.value; saveConfig(); }
+            if(t.dataset.cpon){ chiPresets[t.dataset.cpon].on=t.checked; saveConfig(); }
             if(t.dataset.on){ const p=t.dataset.on.split(':'); const en=findE(p[0],p[1]); if(en){ en.on=t.checked; saveConfig(); } }
             if(t.dataset.wbon){ const s=t.dataset.wbon; wbSign[s]=wbSign[s]||{}; wbSign[s].on=t.checked; saveConfig(); }
+            if(t.id==="timingSel"){ examTiming=t.value; saveConfig(); }
         });
         document.addEventListener('click', e=>{
+            const secT=e.target.closest('.sec-title');
+            if(secT){ const s=secT.dataset.sec; openSec[s]=!openSec[s]; renderEditor(); return; }
             const head=e.target.closest('.acc-head');
             if(head){ const k=head.dataset.acc; openSet[k]=!openSet[k]; renderEditor(); return; }
             const t=e.target;
