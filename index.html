@@ -64,8 +64,8 @@
         .header h1 .num { color: #ffe6b0; }
         .edit-pencil { width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--chalk); background: transparent; color: var(--chalk); font-size: 22px; cursor: pointer; line-height: 1; padding: 0; }
         .edit-pencil:hover { background: rgba(244,241,232,0.15); }
-        .logout-btn { background: transparent; color: var(--del-color); border: 2px solid var(--del-color); padding: 9px 22px; border-radius: 50px; cursor: pointer; font-family: inherit; font-size: 1.05em; white-space: nowrap; }
-        .logout-btn:hover { background: var(--del-color); color: #fff; }
+        .logout-btn { background: transparent; color: #ffb59e; border: 2px solid #ff7a5c; padding: 9px 22px; border-radius: 50px; cursor: pointer; font-family: inherit; font-size: 1.05em; white-space: nowrap; }
+        .logout-btn:hover { background: #ff7a5c; color: #fff; }
 
         /* 日期列 */
         .date-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 2px 16px; font-size: 38px; }
@@ -317,6 +317,7 @@
         let chiPresets = { p1:{on:false,L:"",opt:"甲",a:"",b:""}, p2:{on:false,L:""}, p3:{on:false,opt:"甲",L:"",nStart:"",nEnd:""}, p4:{on:false,L:""}, p5:{on:false,L:""}, p6:{on:false,L:"",a:"",b:""} };
         let matPresets = { m1:{on:false,a:"",b:""}, m2:{on:false,a:"",b:""} };
         let reviewEntries = [];   // {id,subj,on,name}
+        let rvChi = {on:false, L:""};   // 國語固定:L幾聽考訂簽
         let examEntries = [];     // {id,subj,on,type,name,lStart,lEnd}
         let wbSign = {chi:{on:false,pStart:"",pEnd:""}, mat:{on:false,pStart:"",pEnd:""}};
         let extras = ["帶大袋子"];
@@ -338,7 +339,7 @@
         function pTxt(a,b){ const pg=pagesText(a,b); return pg ? ("p."+pg) : ""; }
         function rangeTxt(a,b){ a=sTrim(a); b=sTrim(b); return a ? (a+(b?("～"+b):"")) : ""; }
         const SUBJ_ABBR = {chi:"國", mat:"數", sci:"自", soc:"社", eng:"英", etc:"其"};
-        function hwText(e){ let t=SUBJ_ABBR[e.subj]+sTrim(e.name); const L=sTrim(e.lesson); if(L)t+=" L"+L; const pg=pTxt(e.pStart,e.pEnd); if(pg)t+=" "+pg; return t; }
+        function hwText(e){ const pre=(e.subj==="etc")?"":SUBJ_ABBR[e.subj]; let t=pre+sTrim(e.name); const L=sTrim(e.lesson); if(L)t+=" L"+L; const pg=pTxt(e.pStart,e.pEnd); if(pg)t+=" "+pg; return t; }
         function chiText(){
             const out=[], c=chiPresets;
             if(c.p1.on && sTrim(c.p1.L)){ let t="讀L"+sTrim(c.p1.L)+"課文＋"+(c.p1.opt||"甲")+"本"; const pg=rangeTxt(c.p1.a,c.p1.b); if(pg) t+="p."+pg; out.push(t); }
@@ -358,7 +359,9 @@
         function wbText(s,w){ let t="簽"+SUBJ_ABBR[s]+"習"; const pg=pTxt(w.pStart,w.pEnd); if(pg)t+=" "+pg; return t; }
         function reviewText(e){ const nm=sTrim(e.name); let base = (nm && nm.indexOf("卷")>=0) ? (SUBJ_ABBR[e.subj]+nm) : (nm || SUBJ_NAME[e.subj]); return base+"訂簽（　）分"; }
         function timingWord(){ if(examTiming==="明")return"明"; if(examTiming==="下一")return"下(一)"; if(examTiming==="下二")return"下(二)"; return (new Date().getDay()===5)?"下(一)":"明"; }
-        function examText(e){ const nm=sTrim(e.name)||SUBJ_ABBR[e.subj]; let t=timingWord()+(e.type==="段考"?"段考":"考")+nm; const ls=sTrim(e.lStart), le=sTrim(e.lEnd); if(ls){ t+=" L"+ls+(le?("～L"+le):""); } return t; }
+        const EXAM_TYPES = ["小考","期中考","期末考"];
+        const EXAM_TYPE_ORD = {"小考":0,"期中考":1,"期末考":2};
+        function examText(e){ const nm=sTrim(e.name)||SUBJ_ABBR[e.subj]; const tw=(!e.type||e.type==="小考")?"考":e.type; let t=timingWord()+tw+nm; const ls=sTrim(e.lStart), le=sTrim(e.lEnd); if(ls){ t+=" L"+ls+(le?("～L"+le):""); } return t; }
 
         function buildItems(){
             const out=[];
@@ -368,8 +371,11 @@
                 hwEntries.filter(e=>e.on && e.subj===sid).forEach(e=>{ if(sTrim(e.name)||sTrim(e.lesson)||pTxt(e.pStart,e.pEnd)) out.push(hwText(e)); });
             });
             ["chi","mat"].forEach(s=>{ const w=wbSign[s]; if(w&&w.on) out.push(wbText(s,w)); });
-            reviewEntries.filter(e=>e.on).slice().sort((a,b)=>(SUBJ_ORDER[a.subj]??9)-(SUBJ_ORDER[b.subj]??9)).forEach(e=> out.push(reviewText(e)));
-            examEntries.filter(e=>e.on).slice().sort((a,b)=> ((a.type==="段考")-(b.type==="段考")) || ((SUBJ_ORDER[a.subj]??9)-(SUBJ_ORDER[b.subj]??9))).forEach(e=> out.push(examText(e)));
+            EXAM_SUBJ.forEach(sid=>{
+                if(sid==="chi" && rvChi.on && sTrim(rvChi.L)) out.push("L"+sTrim(rvChi.L)+"聽考訂簽（　）分");
+                reviewEntries.filter(e=>e.on && e.subj===sid).forEach(e=> out.push(reviewText(e)));
+            });
+            examEntries.filter(e=>e.on).slice().sort((a,b)=> ((EXAM_TYPE_ORD[a.type]??0)-(EXAM_TYPE_ORD[b.type]??0)) || ((SUBJ_ORDER[a.subj]??9)-(SUBJ_ORDER[b.subj]??9))).forEach(e=> out.push(examText(e)));
             extras.forEach(t=>{ if(t&&t.trim()) out.push(t.trim()); });
             return out;
         }
@@ -397,7 +403,7 @@
             requestAnimationFrame(fitCast);
         }
 
-        const IC_UNDO = `<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M3.5 13a8.5 8.5 0 1 0 2.4-7.4L3 8"/></svg>`;
+        const IC_UNDO = `<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H9"/></svg>`;
         const IC_TRASH = `<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>`;
         function clearBtn(k){ return `<button class="iconbtn clear" data-clear="${k}" title="清除欄位">${IC_UNDO}</button>`; }
         function delBtn(k){ return `<button class="iconbtn del" data-del="${k}" title="刪除整列">${IC_TRASH}</button>`; }
@@ -413,10 +419,14 @@
             + clearBtn(k) + delBtn(k) + `</div>`; }
         function examRow(sec,e){ const k=sec+":"+e.id; const opt=t=>`<option value="${t}" ${(e.type||'小考')===t?'selected':''}>${t}</option>`;
             return `<div class="hw-row"><input type="checkbox" class="hw-on" data-on="${k}" ${e.on?'checked':''}>`
-            + `<select class="hw-subj" data-f="${k}:type">${opt('小考')}${opt('段考')}</select>`
+            + `<select class="hw-subj" data-f="${k}:type">${EXAM_TYPES.map(opt).join('')}</select>`
             + `<input class="input hw-type" placeholder="考試名稱（留空＝科目縮寫）" value="${esc(e.name||'')}" data-f="${k}:name">`
             + `<span class="hw-field">L<input class="input hw-num" type="number" min="1" value="${esc(e.lStart||'')}" data-f="${k}:lStart"> ～ L<input class="input hw-num" type="number" min="1" value="${esc(e.lEnd||'')}" data-f="${k}:lEnd"></span>`
             + clearBtn(k) + delBtn(k) + `</div>`; }
+        function rvChiRow(){ const r=rvChi; return `<div class="hw-row"><input type="checkbox" class="hw-on" data-rvcon ${r.on?'checked':''}>`
+            + `<span class="hw-static">L</span><input class="input hw-num" type="number" min="1" value="${esc(r.L||'')}" data-rvc="L">`
+            + `<span class="hw-static">聽考訂簽（　）分</span>`
+            + `<button class="iconbtn clear" data-clearrvc title="清除欄位">${IC_UNDO}</button></div>`; }
         function chiPresetRows(){
             const c=chiPresets;
             const optSel=(p,cur)=>`<select class="hw-subj" data-cps="${p}:opt"><option value="甲" ${cur==='甲'?'selected':''}>甲</option><option value="乙" ${cur==='乙'?'selected':''}>乙</option></select>`;
@@ -442,15 +452,18 @@
             return subjList.map(sid=>{
                 const isChi = (sec==="hw" && sid==="chi");
                 const isMat = (sec==="hw" && sid==="mat");
+                const isRvChi = (sec==="rv" && sid==="chi");
                 const ents = entriesArr.filter(e=>e.subj===sid);
                 const open = !!openSet[sec+":"+sid];
                 let cc = ents.filter(e=>e.on).length;
                 if(isChi) cc += Object.keys(chiPresets).filter(p=>chiPresets[p].on).length;
                 if(isMat) cc += Object.keys(matPresets).filter(p=>matPresets[p].on).length;
+                if(isRvChi && rvChi.on) cc += 1;
                 let body="";
                 if(open){
                     if(isChi) body += chiPresetRows();
                     if(isMat) body += matPresetRows();
+                    if(isRvChi) body += rvChiRow();
                     body += ents.map(e=>rowFn(sec,e)).join('') + `<button class="add-line-btn" data-add="${sec}:${sid}">＋ 新增</button>`;
                 }
                 return `<div class="acc ${open?'open':''}">`
@@ -465,6 +478,7 @@
             Object.values(matPresets).forEach(p=>p.on=false);
             ["chi","mat"].forEach(s=>{ if(wbSign[s]) wbSign[s].on=false; });
             reviewEntries.forEach(e=>e.on=false);
+            rvChi.on=false;
             examEntries.forEach(e=>e.on=false);
         }
         function renderEditor(){
@@ -494,7 +508,7 @@
         }
 
         let saveTimer = null;
-        function saveConfig(){ clearTimeout(saveTimer); saveTimer=setTimeout(()=>{ setDoc(bookRef,{hwEntries,chiPresets,matPresets,reviewEntries,examEntries,wbSign,examTiming,extras,className},{merge:true}).catch(e=>console.warn(e)); },700); }
+        function saveConfig(){ clearTimeout(saveTimer); saveTimer=setTimeout(()=>{ setDoc(bookRef,{hwEntries,chiPresets,matPresets,reviewEntries,rvChi,examEntries,wbSign,examTiming,extras,className},{merge:true}).catch(e=>console.warn(e)); },700); }
         async function publish(){
             const dp = rocParts(); const now = new Date();
             const label = `${dp.y}/${dp.m}/${dp.d} ${now.getHours()}:${("0"+now.getMinutes()).slice(-2)}`;
@@ -512,6 +526,7 @@
                     if(data.chiPresets && typeof data.chiPresets==='object'){ Object.keys(chiPresets).forEach(p=>{ if(data.chiPresets[p]) Object.assign(chiPresets[p], data.chiPresets[p]); }); }
                     if(data.matPresets && typeof data.matPresets==='object'){ Object.keys(matPresets).forEach(p=>{ if(data.matPresets[p]) Object.assign(matPresets[p], data.matPresets[p]); }); }
                     if(Array.isArray(data.reviewEntries)) reviewEntries=data.reviewEntries;
+                    if(data.rvChi && typeof data.rvChi==='object') Object.assign(rvChi, data.rvChi);
                     if(Array.isArray(data.examEntries)) examEntries=data.examEntries;
                     if(data.wbSign && typeof data.wbSign==='object') wbSign=Object.assign({chi:{on:false,pStart:"",pEnd:""},mat:{on:false,pStart:"",pEnd:""}}, data.wbSign);
                     if(typeof data.examTiming==='string') examTiming=data.examTiming;
@@ -559,6 +574,7 @@
             if(t.dataset.f){ const p=t.dataset.f.split(':'); const en=findE(p[0],p[1]); if(en){ en[p[2]]=t.value; saveConfig(); } }
             if(t.dataset.cp){ const p=t.dataset.cp.split(':'); chiPresets[p[0]][p[1]]=t.value; saveConfig(); }
             if(t.dataset.mp){ const p=t.dataset.mp.split(':'); matPresets[p[0]][p[1]]=t.value; saveConfig(); }
+            if(t.dataset.rvc){ rvChi[t.dataset.rvc]=t.value; saveConfig(); }
             if(t.dataset.wb){ const p=t.dataset.wb.split(':'); wbSign[p[0]]=wbSign[p[0]]||{}; wbSign[p[0]][p[1]]=t.value; saveConfig(); }
             if(t.dataset.ex!=null){ extras[+t.dataset.ex]=t.value; saveConfig(); }
         });
@@ -568,6 +584,7 @@
             if(t.dataset.cps){ const p=t.dataset.cps.split(':'); chiPresets[p[0]][p[1]]=t.value; saveConfig(); }
             if(t.dataset.cpon){ chiPresets[t.dataset.cpon].on=t.checked; saveConfig(); }
             if(t.dataset.mpon){ matPresets[t.dataset.mpon].on=t.checked; saveConfig(); }
+            if(t.hasAttribute && t.hasAttribute('data-rvcon')){ rvChi.on=t.checked; saveConfig(); }
             if(t.dataset.on){ const p=t.dataset.on.split(':'); const en=findE(p[0],p[1]); if(en){ en.on=t.checked; saveConfig(); } }
             if(t.dataset.wbon){ const s=t.dataset.wbon; wbSign[s]=wbSign[s]||{}; wbSign[s].on=t.checked; saveConfig(); }
             if(t.id==="timingSel"){ examTiming=t.value; saveConfig(); }
@@ -584,6 +601,8 @@
             if(clrmp){ const m=matPresets[clrmp.dataset.clearmp]; ["a","b"].forEach(f=>{ if(f in m) m[f]=""; }); renderEditor(); saveConfig(); return; }
             const clrwb=e.target.closest('[data-clearwb]');
             if(clrwb){ const s=clrwb.dataset.clearwb; if(wbSign[s]){ wbSign[s].pStart="";wbSign[s].pEnd=""; renderEditor(); saveConfig(); } return; }
+            const clrrvc=e.target.closest('[data-clearrvc]');
+            if(clrrvc){ rvChi.L=""; renderEditor(); saveConfig(); return; }
             // 刪除整列(垃圾桶圖示)
             const del=e.target.closest('[data-del]');
             if(del){ const p=del.dataset.del.split(':'); const a=arrOf(p[0]); if(a){ const i=a.findIndex(x=>x.id===p[1]); if(i>=0){ a.splice(i,1); renderEditor(); saveConfig(); } } return; }
